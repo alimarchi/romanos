@@ -21,10 +21,10 @@ class RomanError(Exception):
 
 def valida_numero(n):
     if not isinstance(n, int):
-        raise TypeError(f"{n} deber ser de tipo int")
+        raise TypeError("debe ser de tipo int")
 
     if n <= 0:
-        raise ValueError(f"{n} debe ser un entero positivo")
+        raise ValueError("debe ser un entero positivo")
 
 def arabigo_a_romano(n):
     valida_numero(n)
@@ -43,35 +43,69 @@ def arabigo_a_romano(n):
 
     return romano
 
+"""
+def arabigo_a_romano_plus(n):
+    if n < 4000:
+        arabigo_a_romano(n)
+    else:
+        n = str(n)
+        ultimos_numeros = int(n[-3:])
+        len_primera_parte = len(n)-3
+        primera_parte = int(n[:len_primera_parte])
+        n = "(" + str(arabigo_a_romano(primera_parte)) + ")" + str(arabigo_a_romano(ultimos_numeros))
+        
+    return n
 
+"""
+
+
+def simbolo_a_valor(simbolo):
+    try:
+        return valores_arabigos[simbolo]
+    except KeyError as el_error:
+            raise RomanError("Error de sintaxis. Simbolo {} no permitidos".format(el_error))
+
+def restar(letra, siguiente):
+    if letra in "VLD":
+        raise RomanError("Error de sintaxis. {} no puede restar".format(letra))
+    elif letra == "I" and siguiente not in ("XV"):
+        raise RomanError("Error de sintaxis. {}{} no puede restar".format(letra, siguiente))
+    elif letra == "X" and siguiente not in ("LC"):
+        raise RomanError("Error de sintaxis. {} {} no puede restar".format(letra, siguiente))
+    elif letra == "C" and siguiente not in ("DM"):
+        raise RomanError("Error de sintaxis. {}{} no puede restar".format(letra, siguiente))
 
 def romano_a_arabigo(cadena):
     resultado = 0
     cont_repeticiones = 0
+    cadena = cadena.upper()
 
     for ix in range(len(cadena)-1):
         letra = cadena[ix]
-        siguiente = cadena[ix + 1]
+        siguiente = cadena[ix +1]
+        valor = simbolo_a_valor(letra)
+        siguiente_valor = simbolo_a_valor(siguiente)
+        
 
         #comprobar repeticiones
-        if letra == siguiente:
+        if valor == siguiente_valor:
             cont_repeticiones += 1
-        elif valores_arabigos[letra] < valores_arabigos[siguiente] and cont_repeticiones > 0:
-            raise RomanError(f"Error de sintaxis. {letra} tras repeticiones no puede restar")
+        elif valor < siguiente_valor and cont_repeticiones > 0:
+            raise RomanError("Error de sintaxis. {} tras repeticiones no puede restar".format(letra))
         else:
             cont_repeticiones = 0
 
         if letra in "VLD" and cont_repeticiones > 0 or cont_repeticiones > 2:
-            raise RomanError(f"Error de sintaxis. Demasiadas repeticiones de {letra}") 
+            raise RomanError("Error de sintaxis. Demasiadas repeticiones de {}".format(letra)) 
         
 
-        if valores_arabigos[letra] >= valores_arabigos[siguiente]:
-            resultado += valores_arabigos[letra]
+        if valor >= siguiente_valor:
+            resultado += valor
         else:
-            if letra in "VLD":
-                raise RomanError("Error de sintaxis. {letra} no puede restar")
-            resultado -= valores_arabigos[letra]
+            restar(letra, siguiente)
 
-    resultado += valores_arabigos[cadena[len(cadena)-1]]
+            resultado -= valor
+
+    resultado += simbolo_a_valor(cadena[-1])
 
     return resultado
